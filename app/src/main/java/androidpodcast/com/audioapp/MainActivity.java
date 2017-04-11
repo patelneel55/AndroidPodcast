@@ -107,7 +107,7 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    //Binding the client to the AudioPlayerService
+    /*//Binding the client to the AudioPlayerService
     private ServiceConnection serviceConnection = new ServiceConnection()
     {
         @Override
@@ -140,5 +140,5 @@ public class MainActivity extends AppCompatActivity
             //Service is active
             //Broadcast Reciever is used
         }
-    }
+    }*/
 }
