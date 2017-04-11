@@ -113,8 +113,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 break;
             case AudioManager.AUDIOFOCUS_LOSS:
                 if(mediaPlayer.isPlaying())mediaPlayer.stop();
-                mediaPlayer.release();
-                mediaPlayer = null;
+                mediaPlayer.release();mediaPlayer = null;
                 break;
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
                 if(mediaPlayer.isPlaying())mediaPlayer.pause();
