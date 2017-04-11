@@ -45,6 +45,12 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     }
 
     @Override
+    public boolean onInfo(MediaPlayer mp, int what, int extra) {
+        //Invoked to communicate some info.
+        return false;
+    }
+
+    @Override
     public void onPrepared(MediaPlayer mp)
     {
         //Invoked when media source is ready for playback
@@ -57,7 +63,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     }
 
     @Override
-    public void onAudioFocusChange(MediaPlayer mp)
+    public void onAudioFocusChange(int focusChange)
     {
         //Invoked when the audio focus of the system is updated
     }
