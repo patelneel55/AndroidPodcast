@@ -179,7 +179,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
 
 
-    /*Basic Media Player functions*/
+    ////////////////////////////*MediaPlayer Functions*/////////////////////////////////////
     private void playMedia()
     {
         if(!mediaPlayer.isPlaying())
