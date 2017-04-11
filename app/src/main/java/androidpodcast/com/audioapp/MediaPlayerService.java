@@ -4,6 +4,7 @@ import android.media.AudioManager;
 import android.os.*;
 import android.media.MediaPlayer;
 import android.content.*;
+import android.app.Service;
 import android.provider.MediaStore;
 
 /**
