@@ -26,6 +26,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     //path to the audio file
     private String mediaFile;
     private int resumePosition;
+    private AudioManager audioManager;
 
 
     private void initMediaPlayer() {
@@ -69,6 +70,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     {
         //Invoked when playback of a media source has completed.
         stopMedia();
+        removeAudioFocus();
         stopSelf();
     }
 
@@ -91,6 +93,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     public void onPrepared(MediaPlayer mp)
     {
         //Invoked when media source is ready for playback
+        requestAudioFocus();
         playMedia();
     }
 
@@ -125,11 +128,58 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         }
     }
 
+    private boolean requestAudioFocus()
+    {
+        audioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+        int result = audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+        return result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
+    }
+
     public class LocalBinder extends Binder
     {
         public MediaPlayerService getService(){return MediaPlayerService.this;}
     }
 
+    private boolean removeAudioFocus()
+    {
+        return AudioManager.AUDIOFOCUS_REQUEST_GRANTED == audioManager.abandonAudioFocus(this);
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId)
+    {
+        try
+        {
+            mediaFile = intent.getExtras().getString("media");
+        }
+        catch (NullPointerException e)
+        {
+            stopSelf();
+        }
+
+        if(!requestAudioFocus())
+            stopSelf();
+        if(mediaFile!=null && !mediaFile.equals(""))
+            initMediaPlayer();
+        return super.onStartCommand(intent, flags, startId);
+    }
+
+    @Override
+    public void onDestroy()
+    {
+        super.onDestroy();
+        if (mediaPlayer != null)
+        {
+            stopMedia();
+            mediaPlayer.release();
+        }
+        removeAudioFocus();
+    }
+
+
+
+
+    /*Basic Media Player functions*/
     private void playMedia()
     {
         if(!mediaPlayer.isPlaying())
