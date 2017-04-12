@@ -6,6 +6,8 @@ import android.media.MediaPlayer;
 import android.content.*;
 import android.app.Service;
 import android.provider.MediaStore;
+import android.content.BroadcastReceiver;
+import android.telephony.*;
 
 import java.io.IOException;
 
@@ -27,6 +29,11 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     private String mediaFile;
     private int resumePosition;
     private AudioManager audioManager;
+
+    //Handle incoming calls
+    private boolean ongoingCall = false;
+    private PhoneStateListener phoneStateListener;
+    private TelephonyManager telephonyManager;
 
 
     private void initMediaPlayer() {
@@ -176,9 +183,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         removeAudioFocus();
     }
 
-
-
-
     ////////////////////////////*MediaPlayer Functions*/////////////////////////////////////
     private void playMedia()
     {
@@ -210,5 +214,62 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             mediaPlayer.start();
         }
     }
+
+    /*///////////////////////////*//*Broadcast Receiver*//*////////////////////////////////////
+
+    private BroadcastReceiver becomingNoisy = new BroadcastReceiver()
+    {
+        @Override
+        public void onRecieve(Context context, Intent intent)
+        {
+            pauseMedia();
+        }
+    };
+
+    private void registerBecomingNoisyReceiver()
+    {
+        IntentFilter intentFilter = new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
+        registerReceiver(becomingNoisy, intentFilter);
+    }
+
+    //Handle incoming phone calls
+    private void callStateListener() {
+        // Get the telephony manager
+        telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+        //Starting listening for PhoneState changes
+        phoneStateListener = new PhoneStateListener()
+        {
+            @Override
+            public void onCallStateChanged(int state, String incomingNumber)
+            {
+                switch (state)
+                {
+                    //if at least one call exists or the phone is ringing
+                    //pause the MediaPlayer
+                    case TelephonyManager.CALL_STATE_OFFHOOK:
+                    case TelephonyManager.CALL_STATE_RINGING:
+                        if (mediaPlayer != null)
+                        {
+                            pauseMedia();
+                            ongoingCall = true;
+                        }
+                        break;
+                    case TelephonyManager.CALL_STATE_IDLE:
+                        // Phone idle. Start playing.
+                        if (mediaPlayer != null) {
+                            if (ongoingCall) {
+                                ongoingCall = false;
+                                resumeMedia();
+                            }
+                        }
+                        break;
+                }
+            }
+        };
+        // Register the listener with the telephony manager
+        // Listen for changes to the device call state.
+        telephonyManager.listen(phoneStateListener,
+                PhoneStateListener.LISTEN_CALL_STATE);
+    }*/
 
 }
