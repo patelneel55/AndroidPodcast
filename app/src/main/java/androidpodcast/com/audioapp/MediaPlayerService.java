@@ -215,7 +215,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         }
     }
 
-    /*///////////////////////////*//*Broadcast Receiver*//*////////////////////////////////////
+    /*///////////////////////////Broadcast Receiver////////////////////////////////////
 
     private BroadcastReceiver becomingNoisy = new BroadcastReceiver()
     {

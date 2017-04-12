@@ -21,12 +21,6 @@
         android:fitsSystemWindows="true"
         app:headerLayout="@layout/nav_header_main"
         app:menu="@menu/activity_main_drawer" />
-    <TextView
-        android:id="@+id/textWindow"
-        android:layout_width="wrap_content"
-        android:layout_height="10dp"
-        android:textAlignment="center"
-        android:text=" "
-        android:gravity="center"/>
+
 
 </android.support.v4.widget.DrawerLayout>
