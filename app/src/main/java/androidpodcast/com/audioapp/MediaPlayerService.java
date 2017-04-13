@@ -68,7 +68,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         try {
             // Set the data source to the mediaFile location
-            mediaPlayer.setDataSource(mediaFile);
+            mediaPlayer.setDataSource(activeAudio.getData());
         } catch (IOException e) {
             e.printStackTrace();
             stopSelf();
@@ -178,21 +178,42 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     }
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId)
-    {
-        try
-        {
-            mediaFile = intent.getExtras().getString("media");
-        }
-        catch (NullPointerException e)
-        {
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        try {
+            //Load data from SharedPreferences
+            StorageUtil storage = new StorageUtil(getApplicationContext());
+            audioList = storage.loadAudio();
+            audioIndex = storage.loadAudioIndex();
+
+            if (audioIndex != -1 && audioIndex < audioList.size()) {
+                //index is in a valid range
+                activeAudio = audioList.get(audioIndex);
+            } else {
+                stopSelf();
+            }
+        } catch (NullPointerException e) {
             stopSelf();
         }
 
-        if(!requestAudioFocus())
+        //Request audio focus
+        if (requestAudioFocus() == false) {
+            //Could not gain focus
             stopSelf();
-        if(mediaFile!=null && !mediaFile.equals(""))
-            initMediaPlayer();
+        }
+
+        if (mediaSessionManager == null) {
+            try {
+                initMediaSession();
+                initMediaPlayer();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+                stopSelf();
+            }
+            buildNotification(PlaybackStatus.PLAYING);
+        }
+
+        //Handle Intent action from MediaSession.TransportControls
+        handleIncomingActions(intent);
         return super.onStartCommand(intent, flags, startId);
     }
 
