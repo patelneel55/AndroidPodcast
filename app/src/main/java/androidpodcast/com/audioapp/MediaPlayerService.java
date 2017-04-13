@@ -1,5 +1,6 @@
 package androidpodcast.com.audioapp;
 
+import android.drm.DrmStore;
 import android.media.AudioManager;
 import android.os.*;
 import android.media.MediaPlayer;
@@ -10,6 +11,7 @@ import android.content.BroadcastReceiver;
 import android.telephony.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 /**
  * Created by Neel on 4/10/2017.
@@ -36,6 +38,10 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     private PhoneStateListener phoneStateListener;
     private TelephonyManager telephonyManager;
 
+    //List of available Audio Files
+    public ArrayList<Audio> audioList;
+    public int audioIndex = -1;
+    public Audio activeAudio;
 
     private void initMediaPlayer() {
         mediaPlayer = new MediaPlayer();
@@ -60,6 +66,14 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         mediaPlayer.prepareAsync();
     }
 
+
+    public void onCreate()
+    {
+        super.onCreate();
+        callStateListener();
+        registerBecomingNoisyReceiver();
+        register_playNewAudio();
+    }
     @Override
     public IBinder onBind(Intent intent)
     {
@@ -182,6 +196,16 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             mediaPlayer.release();
         }
         removeAudioFocus();
+
+        if(phoneStateListener != null)
+            telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE);
+
+        removeNotification();
+
+        unregisterReceiver(becomingNoisy);
+        unregisterReceiver(playNewAudio);
+
+        new StorageUtil(getApplicationContext()).clearCachedAudioPlaylist();
     }
 
     ////////////////////////////*MediaPlayer Functions*/////////////////////////////////////
@@ -216,14 +240,14 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         }
     }
 
-    /*///////////////////////////Broadcast Receiver////////////////////////////////////
+    ///////////////////////////Broadcast Receiver////////////////////////////////////
 
-    private BroadcastReceiver becomingNoisy = new BroadcastReceiver()
-    {
+    private BroadcastReceiver becomingNoisy = new BroadcastReceiver() {
         @Override
-        public void onRecieve(Context context, Intent intent)
-        {
+        public void onReceive(Context context, Intent intent) {
+            //pause audio on ACTION_AUDIO_BECOMING_NOISY
             pauseMedia();
+            buildNotification(PlaybackStatus.PAUSED);
         }
     };
 
@@ -232,6 +256,35 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         IntentFilter intentFilter = new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
         registerReceiver(becomingNoisy, intentFilter);
     }
+
+    private BroadcastReceiver playNewAudio = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            audioIndex = new StorageUtil(getApplicationContext()).loadAudioIndex();
+            if(audioIndex != -1 && audioIndex < audioList.size())
+            {
+                activeAudio = audioList.get(audioIndex);
+            }
+            else
+            {
+                stopSelf();
+            }
+
+            stopMedia();
+            mediaPlayer.reset();
+            initMediaPlayer();
+            updateMetaData();
+            buildNotification(PlaybackStatus.PLAYING);
+        }
+    };
+
+    private void register_playNewAudio()
+    {
+        IntentFilter filter = new IntentFilter(MainActivity.Broadcast_PLAY_NEW_AUDIO);
+        registerReceiver(playNewAudio, filter);
+    }
+
+
 
     //Handle incoming phone calls
     private void callStateListener() {
@@ -271,6 +324,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         // Listen for changes to the device call state.
         telephonyManager.listen(phoneStateListener,
                 PhoneStateListener.LISTEN_CALL_STATE);
-    }*/
+    }
 
 }
