@@ -20,7 +20,7 @@ public class StorageUtil
     private SharedPreferences preferences;
     private Context context;
 
-    private StorageUtil(Context context)
+    public StorageUtil(Context context)
     {
         this.context = context;
     }

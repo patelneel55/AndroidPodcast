@@ -31,6 +31,8 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
+
+    public static final String Broadcast_PLAY_NEW_AUDIO = "androidpodcast.com.audioapp.PlayNewAudio";
     private MediaPlayerService player;
     boolean serviceBound = false;
     //Initialize audio arraylist
@@ -47,7 +49,7 @@ public class MainActivity extends AppCompatActivity
         loadAudio();
         TextView text = (TextView)findViewById(R.id.textWindow);
             text.setText(text.getText()+audioList.get(23).getData()+ "            "+audioList.size());
-        playAudio(audioList.get(0).getData());
+        playAudio(0);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -169,7 +171,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     ////////////////////////////*Basic Startup functions*/////////////////////////////////////
-    private void playAudio(String media)
+    /*private void playAudio(String media)
     {
         if(!serviceBound)
         {
@@ -182,6 +184,28 @@ public class MainActivity extends AppCompatActivity
         {
             //Service is active
             //Broadcast Reciever is used
+        }
+    }*/
+
+    private void playAudio(int audioIndex)
+    {
+        if(!serviceBound)
+        {
+            StorageUtil store = new StorageUtil(getApplicationContext());
+            store.storeAudio(audioList);
+            store.storeAudioIndex(audioIndex);
+
+            Intent playerIntent = new Intent(this, MediaPlayerService.class);
+            startService(playerIntent);
+            bindService(playerIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+        }
+        else
+        {
+            StorageUtil store = new StorageUtil(getApplicationContext());
+            store.storeAudioIndex(audioIndex);
+
+            Intent broadcastIntent = new Intent(Broadcast_PLAY_NEW_AUDIO);
+            sendBroadcast(broadcastIntent);
         }
     }
 
