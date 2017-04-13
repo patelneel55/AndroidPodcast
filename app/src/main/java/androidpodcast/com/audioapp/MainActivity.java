@@ -35,7 +35,6 @@ public class MainActivity extends AppCompatActivity
     boolean serviceBound = false;
     //Initialize audio arraylist
     //Neel doesn't know how to code
-    //HEHEHEE
     //Hello! its me!
     //HelloWorlds
     ArrayList<Audio> audioList;
