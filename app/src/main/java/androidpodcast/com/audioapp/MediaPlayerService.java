@@ -25,6 +25,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
     //Creates an instance of the mediaPlayer
     private MediaPlayer mediaPlayer;
+
     //path to the audio file
     private String mediaFile;
     private int resumePosition;
