@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity
     private MediaPlayerService player;
     boolean serviceBound = false;
     //Initialize audio arraylist
-    //I dont know how GitHub Works
+    //Neel doesn't know how to code
     ArrayList<Audio> audioList;
 
     @Override
