@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity
     private MediaPlayerService player;
     boolean serviceBound = false;
     //Initialize audio arraylist
-    //Neel doesn't know how to code
+    //Hello its me!
     ArrayList<Audio> audioList;
 
     @Override
@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity
         //playAudio("https://upload.wikimedia.org/wikipedia/commons/6/6c/Grieg_Lyric_Pieces_Kobold.ogg");
         loadAudio();
         TextView text = (TextView)findViewById(R.id.textWindow);
-            text.setText(text.getText()+audioList.get(23).getData()+ "            "+audioList.size());
+        text.setText(text.getText()+audioList.get(23).getData()+ "            "+audioList.size());
         playAudio(audioList.get(0).getData());
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
