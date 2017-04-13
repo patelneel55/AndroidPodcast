@@ -13,14 +13,15 @@ import android.content.*;
 import android.app.Service;
 import android.provider.MediaStore;
 import android.content.BroadcastReceiver;
-import android.support.v4.app.NotificationCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.telephony.*;
 import java.io.IOException;
 import java.util.ArrayList;
+import android.support.v7.app.NotificationCompat;
 import android.support.v7.app.NotificationCompat.MediaStyle;
+import android.support.v4.app.NotificationCompat.Style;
 
 /**
  * Created by Neel on 4/10/2017.
