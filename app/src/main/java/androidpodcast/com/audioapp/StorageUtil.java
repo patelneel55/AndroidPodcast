@@ -27,7 +27,7 @@ public class StorageUtil
 
     public void storeAudio(ArrayList<Audio> arrayList)
     {
-        preferences = context.getSharedPreferences((STORAGE, Context.MODE_PRIVATE));
+        preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);
 
         SharedPreferences.Editor editor = preferences.edit();
         Gson gson = new Gson();
