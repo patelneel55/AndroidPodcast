@@ -3,6 +3,7 @@ package androidpodcast.com.audioapp;
 import android.content.ComponentName;
 import android.content.ServiceConnection;
 import android.content.BroadcastReceiver;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.provider.MediaStore;
@@ -10,6 +11,7 @@ import android.support.constraint.solver.ArrayLinkedVariables;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContentResolverCompat;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -19,13 +21,17 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.content.*;
 import android.net.Uri;
 import android.database.Cursor;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity
@@ -38,13 +44,43 @@ public class MainActivity extends AppCompatActivity
     //Initialize audio arraylist
     ArrayList<Audio> audioList;
 
+
+
+    //Attempt Two
+    private String[] mAudioPath;
+    private MediaPlayer mMediaPlayer;
+    private String[] mMusicList;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         //playAudio("https://upload.wikimedia.org/wikipedia/commons/6/6c/Grieg_Lyric_Pieces_Kobold.ogg");
         loadAudio();
-        playAudio(2);
+        //TextView mListView = (TextView) findViewById(R.id.textWindow);
+        //mListView.setText(MediaStore.Audio.Media.INTERNAL_CONTENT_URI.toString());
+
+       // playAudio(0);
+
+        mMediaPlayer = new MediaPlayer();
+
+        ListView mListView = (ListView) findViewById(R.id.textWindow);
+
+        mMusicList = getAudioList();
+
+        ArrayAdapter<String> mAdapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_list_item_1, mMusicList);
+        mListView.setAdapter(mAdapter);
+
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
+                                    long arg3) {
+                playAudio(arg2);
+            }
+        });
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -65,6 +101,42 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+    }
+
+    private String[] getAudioList() {
+        final Cursor mCursor = getContentResolver().query(
+                MediaStore.Audio.Media.INTERNAL_CONTENT_URI,
+                new String[] { MediaStore.Audio.Media.DISPLAY_NAME, MediaStore.Audio.Media.DATA }, null, null,
+                "LOWER(" + MediaStore.Audio.Media.TITLE + ") ASC");
+
+        int count = mCursor.getCount();
+
+        String[] songs = new String[count];
+        String[] mAudioPath = new String[count];
+        int i = 0;
+        if (mCursor.moveToFirst()) {
+            do {
+                songs[i] = mCursor.getString(mCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME));
+                mAudioPath[i] = mCursor.getString(mCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA));
+                i++;
+            } while (mCursor.moveToNext());
+        }
+
+        mCursor.close();
+
+        return songs;
+    }
+
+    private void playSong(String path) throws IllegalArgumentException,
+            IllegalStateException, IOException {
+
+        Log.d("ringtone", "playSong :: " + path);
+
+        mMediaPlayer.reset();
+        mMediaPlayer.setDataSource(path);
+//mMediaPlayer.setLooping(true);
+        mMediaPlayer.prepare();
+        mMediaPlayer.start();
     }
 
     @Override
@@ -209,7 +281,6 @@ public class MainActivity extends AppCompatActivity
         ContentResolver contentResolver = getContentResolver();
 
         Uri uri = MediaStore.Audio.Media.INTERNAL_CONTENT_URI;
-        System.out.println(uri);
         String selection = MediaStore.Audio.Media.IS_MUSIC + "!= 0";
         String sortOrder = MediaStore.Audio.Media.TITLE + " ASC";
         Cursor cursor = contentResolver.query(uri, null, selection, null, sortOrder);
