@@ -62,14 +62,14 @@ public class MainActivity extends AppCompatActivity
 
        // playAudio(0);
 
-        mMediaPlayer = new MediaPlayer();
-
         ListView mListView = (ListView) findViewById(R.id.textWindow);
 
-        mMusicList = getAudioList();
+        ArrayList<String> audioTitle = new ArrayList<String>();
+        for(int i = 0;i<audioList.size();i++)
+            audioTitle.add(audioList.get(i).getTitle());
 
         ArrayAdapter<String> mAdapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_list_item_1, mMusicList);
+                android.R.layout.simple_list_item_1, audioTitle);
         mListView.setAdapter(mAdapter);
 
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -101,42 +101,6 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-    }
-
-    private String[] getAudioList() {
-        final Cursor mCursor = getContentResolver().query(
-                MediaStore.Audio.Media.INTERNAL_CONTENT_URI,
-                new String[] { MediaStore.Audio.Media.DISPLAY_NAME, MediaStore.Audio.Media.DATA }, null, null,
-                "LOWER(" + MediaStore.Audio.Media.TITLE + ") ASC");
-
-        int count = mCursor.getCount();
-
-        String[] songs = new String[count];
-        String[] mAudioPath = new String[count];
-        int i = 0;
-        if (mCursor.moveToFirst()) {
-            do {
-                songs[i] = mCursor.getString(mCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME));
-                mAudioPath[i] = mCursor.getString(mCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA));
-                i++;
-            } while (mCursor.moveToNext());
-        }
-
-        mCursor.close();
-
-        return songs;
-    }
-
-    private void playSong(String path) throws IllegalArgumentException,
-            IllegalStateException, IOException {
-
-        Log.d("ringtone", "playSong :: " + path);
-
-        mMediaPlayer.reset();
-        mMediaPlayer.setDataSource(path);
-//mMediaPlayer.setLooping(true);
-        mMediaPlayer.prepare();
-        mMediaPlayer.start();
     }
 
     @Override
