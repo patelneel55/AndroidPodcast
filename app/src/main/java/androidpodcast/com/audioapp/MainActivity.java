@@ -40,6 +40,13 @@ import android.database.Cursor;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener
 {
@@ -57,6 +64,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        initRetroFit();
         //Checks and asks the user storage permission
         if (ContextCompat.checkSelfPermission(MainActivity.this, android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
                 ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
@@ -163,6 +171,35 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
+    /********************************** SoundCloud Streaming *********************************/
+
+    private void initRetroFit()
+    {
+        Retrofit retrofit = new Retrofit.Builder().baseUrl(Config.API_URL).addConverterFactory(GsonConverterFactory.create()).build();
+
+        SCService service = retrofit.create(SCService.class);
+        service.getRecentTracks("last_week").enqueue(new Callback<List<Audio>>() {
+            @Override
+            public void onResponse(Call<List<Audio>> call, Response<List<Audio>> response) {
+                if(response.isSuccessful())
+                {
+                    List<Audio> tracks = response.body();
+                    showMessage(tracks.get(0).getTitle());
+                }else
+                    showMessage("Error code "+response.code());
+            }
+
+            @Override
+            public void onFailure(Call<List<Audio>> call, Throwable t) {
+                showMessage("Error code "+t.getMessage());
+            }
+        });
+    }
+
+    private void showMessage(String message)
+    {
+        Toast.makeText(this,message,Toast.LENGTH_SHORT).show();
+    }
 
     /********************************** Initiate Service and connect Client *********************************/
 
