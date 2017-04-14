@@ -249,7 +249,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Log.d("Load Audio Error","cursor init failed!  " + uri.toString());
         }
 
-        if (cursor != null &&cursor.moveToFirst() && cursor.getCount() > 0)
+        if (cursor != null && cursor.moveToFirst() && cursor.getCount() > 0)
         {
             audioList = new ArrayList<>();
              do{
