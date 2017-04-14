@@ -1,6 +1,10 @@
 package androidpodcast.com.audioapp;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.io.Serializable;
+
+import retrofit2.Retrofit;
 
 /**
  * Created by Aatu on 4/11/2017.
@@ -8,10 +12,26 @@ import java.io.Serializable;
 
 public class Audio implements Serializable
 {
+
     private String data;
+
+    @SerializedName("title")
     private String title;
+
+    @SerializedName("album")
     private String album;
+
+    @SerializedName("artist")
     private String artist;
+
+    @SerializedName("id")
+    private int mID;
+
+    @SerializedName("artwork_url")
+    private String mArtworkURL;
+
+    @SerializedName("stream_url")
+    private String mStreamURL;
 
     public Audio(String data, String title, String album, String artist)
     {
@@ -31,6 +51,10 @@ public class Audio implements Serializable
 
     public String getArtist() {return artist;}
 
+    public String getStreamURL() {return mStreamURL;}
+
+    public String getArtworkURL() {return mArtworkURL;}
+
     /********************************** Setters *********************************/
 
     public void setData(String data) {this.data = data;}
@@ -40,4 +64,10 @@ public class Audio implements Serializable
     public void setAlbum(String album) {this.album = album;}
 
     public void setArtist(String artist) {this.artist = artist;}
+
+    public void setStreamURL(String mStreamURL) {this.mStreamURL = mStreamURL;}
+
+    public void getArtworkURL(String mArtworkURL) {this.mArtworkURL = mArtworkURL;}
+
+
 }
