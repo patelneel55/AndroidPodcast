@@ -20,10 +20,7 @@ public class StorageUtil
     private SharedPreferences preferences;
     private Context context;
 
-    public StorageUtil(Context context)
-    {
-        this.context = context;
-    }
+    public StorageUtil(Context context) {this.context = context;}
 
     public void storeAudio(ArrayList<Audio> arrayList)
     {

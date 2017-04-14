@@ -239,7 +239,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         new StorageUtil(getApplicationContext()).clearCachedAudioPlaylist();
     }
 
-    ////////////////////////////*MediaPlayer Functions*/////////////////////////////////////
+    /********************************** Media Player functions*********************************/
     public void playMedia()
     {
         if(!mediaPlayer.isPlaying())
@@ -271,7 +271,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         }
     }
 
-    ///////////////////////////Broadcast Receiver////////////////////////////////////
+    /********************************** Broadcast Receiver *********************************/
 
     private BroadcastReceiver becomingNoisy = new BroadcastReceiver() {
         @Override
@@ -359,10 +359,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
 
 
+    /********************************** Media Session *********************************/
 
-
-
-    ////////////////////////////////////////////////////MEDIA SESSION///////////////////////////////////////////
     //Actions triggerd by the Media Session listener
     public static final String ACTION_PLAY = "androidpodcast.com.audioapp.ACTION_PLAY";
     public static final String ACTION_PAUSE = "androidpodcast.com.audioapp.ACTION_PAUSE";

@@ -1,16 +1,22 @@
 package androidpodcast.com.audioapp;
 
+import android.*;
+import android.Manifest;
 import android.content.ComponentName;
 import android.content.ServiceConnection;
 import android.content.BroadcastReceiver;
+import android.content.pm.PackageManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.IBinder;
 import android.provider.MediaStore;
 import android.support.constraint.solver.ArrayLinkedVariables;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContentResolverCompat;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -31,11 +37,12 @@ import android.content.*;
 import android.net.Uri;
 import android.database.Cursor;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener
+{
 
 
     public static final String Broadcast_PLAY_NEW_AUDIO = "androidpodcast.com.audioapp.PlayNewAudio";
@@ -44,42 +51,20 @@ public class MainActivity extends AppCompatActivity
     //Initialize audio arraylist
     ArrayList<Audio> audioList;
 
-
-
-    //Attempt Two
-    private String[] mAudioPath;
-    private MediaPlayer mMediaPlayer;
-    private String[] mMusicList;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
+        if (ContextCompat.checkSelfPermission(MainActivity.this, android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
+        }
+        else
+            setUpMedia();
+
         //playAudio("https://upload.wikimedia.org/wikipedia/commons/6/6c/Grieg_Lyric_Pieces_Kobold.ogg");
-        loadAudio();
-        //TextView mListView = (TextView) findViewById(R.id.textWindow);
-        //mListView.setText(MediaStore.Audio.Media.INTERNAL_CONTENT_URI.toString());
-
-       // playAudio(0);
-
-        ListView mListView = (ListView) findViewById(R.id.textWindow);
-
-        ArrayList<String> audioTitle = new ArrayList<String>();
-        for(int i = 0;i<audioList.size();i++)
-            audioTitle.add(audioList.get(i).getTitle());
-
-        ArrayAdapter<String> mAdapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_list_item_1, audioTitle);
-        mListView.setAdapter(mAdapter);
-
-        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-            @Override
-            public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
-                                    long arg3) {
-                playAudio(arg2);
-            }
-        });
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -160,7 +145,28 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    ////////////////////////////*Connect Client to the AudioPlayer Service*/////////////////////////////////////
+    //Action based on permission response
+    @Override
+    public void onRequestPermissionsResult(int requestCode,String[] permissions, int[] grantResults)
+    {
+        switch (requestCode)
+        {
+            case 1:
+            {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                {
+                    setUpMedia();
+                    Toast.makeText(this, "Permission Granted", Toast.LENGTH_SHORT).show();
+                }
+                else
+                    System.exit(1);
+            }break;
+        }
+    }
+
+
+    /********************************** Initiate Service and connect Client *********************************/
+
     private ServiceConnection serviceConnection = new ServiceConnection()
     {
         @Override
@@ -201,25 +207,12 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    ////////////////////////////*Basic Startup functions*/////////////////////////////////////
-    /*private void playAudio(String media)
-    {
-        if(!serviceBound)
-        {
-            Intent playerIntent = new Intent(this, MediaPlayerService.class);
-            playerIntent.putExtra("media", media);
-            startService(playerIntent);
-            bindService(playerIntent, serviceConnection, Context.BIND_AUTO_CREATE);
-        }
-        else
-        {
-            //Service is active
-            //Broadcast Reciever is used
-        }
-    }*/
+    /********************************** Startup Functions *********************************/
 
+    /*Plays the selected audio*/
     private void playAudio(int audioIndex)
     {
+        Log.d("Number : ",audioList.size()+"");
         if(!serviceBound)
         {
             StorageUtil store = new StorageUtil(getApplicationContext());
@@ -240,29 +233,60 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    /*Loads all audio from local storage*/
     private void loadAudio()
     {
         ContentResolver contentResolver = getContentResolver();
-
-        Uri uri = MediaStore.Audio.Media.INTERNAL_CONTENT_URI;
+        Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
         String selection = MediaStore.Audio.Media.IS_MUSIC + "!= 0";
         String sortOrder = MediaStore.Audio.Media.TITLE + " ASC";
-        Cursor cursor = contentResolver.query(uri, null, selection, null, sortOrder);
 
+        Cursor cursor = null;
+        try
+        {
+            cursor = contentResolver.query(uri, null, selection, null, sortOrder);
+        }catch(Exception e)
+        {
+            Log.d("Load Audio Error","cursor init failed!  " + uri.toString());
+        }
 
-
-        if (cursor != null && cursor.getCount() > 0) {
+        if (cursor != null &&cursor.moveToFirst() && cursor.getCount() > 0)
+        {
             audioList = new ArrayList<>();
-            while (cursor.moveToNext()) {
+             do{
                 String data = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
                 String title = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
                 String album = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
                 String artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
 
+                Log.d("Data: ", cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA)));
                 // Save to audioList
                 audioList.add(new Audio(data, title, album, artist));
-            }
+            }while (cursor.moveToNext());
+            cursor.close();
         }
-        cursor.close();
+        else
+            Log.d("Cursor Error", "Cursor is Null");
+    }
+
+    private void setUpMedia()
+    {
+        loadAudio();
+        ListView mListView = (ListView) findViewById(R.id.textWindow);
+
+        ArrayList<String> audioTitle = new ArrayList<String>();
+        for(int i = 0;i<audioList.size();i++)
+            audioTitle.add(audioList.get(i).getTitle());
+
+        ArrayAdapter<String> mAdapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_list_item_1, audioTitle);
+        mListView.setAdapter(mAdapter);
+
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
+                                    long arg3) {playAudio(arg2);}
+        });
     }
 }

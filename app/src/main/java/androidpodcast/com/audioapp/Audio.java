@@ -21,47 +21,23 @@ public class Audio implements Serializable
         this.artist = artist;
     }
 
-    ////////////////////////////*Getters*/////////////////////////////////////
+    /********************************** Getters *********************************/
 
-    public String getData()
-    {
-        return data;
-    }
+    public String getData() {return data;}
 
-    public String getTitle()
-    {
-        return title;
-    }
+    public String getTitle() {return title;}
 
-    public String getAlbum()
-    {
-        return album;
-    }
+    public String getAlbum() {return album;}
 
-    public String getArtist()
-    {
-        return artist;
-    }
+    public String getArtist() {return artist;}
 
-    ////////////////////////////*Setters*/////////////////////////////////////
+    /********************************** Setters *********************************/
 
-    public void setData(String data)
-    {
-        this.data = data;
-    }
+    public void setData(String data) {this.data = data;}
 
-    public void setTitle(String title)
-    {
-        this.title = title;
-    }
+    public void setTitle(String title) {this.title = title;}
 
-    public void setAlbum(String album)
-    {
-        this.album = album;
-    }
+    public void setAlbum(String album) {this.album = album;}
 
-    public void setArtist(String artist)
-    {
-        this.artist = artist;
-    }
+    public void setArtist(String artist) {this.artist = artist;}
 }
