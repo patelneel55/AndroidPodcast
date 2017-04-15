@@ -29,6 +29,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -36,6 +37,8 @@ import android.widget.Toast;
 import android.content.*;
 import android.net.Uri;
 import android.database.Cursor;
+
+import com.squareup.picasso.Picasso;
 
 import java.io.File;
 import java.io.IOException;
@@ -58,18 +61,24 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     //Initialize audio arraylist
     ArrayList<Audio> audioList;
 
+    //New View Adapter for different UX
+    SCTrackAdapter mAdapter;
+    ListView mListView;
+    TextView track_title;
+    ImageView track_image;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        initRetroFit();
+        //setUpStreamMedia();
         //Checks and asks the user storage permission
         if (ContextCompat.checkSelfPermission(MainActivity.this, android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
                 ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
         else
-            setUpMedia();
+            setUpStorageMedia();
 
         //playAudio("https://upload.wikimedia.org/wikipedia/commons/6/6c/Grieg_Lyric_Pieces_Kobold.ogg");
 
@@ -162,7 +171,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
                 {
-                    setUpMedia();
+                    setUpStorageMedia();
                     Toast.makeText(this, "Permission Granted", Toast.LENGTH_SHORT).show();
                 }
                 else
@@ -171,34 +180,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    /********************************** SoundCloud Streaming *********************************/
-
-    private void initRetroFit()
+    /*Initializes the View Adapter*/
+    private void setListView()
     {
-        Retrofit retrofit = new Retrofit.Builder().baseUrl(Config.API_URL).addConverterFactory(GsonConverterFactory.create()).build();
+        mListView = (ListView) findViewById(R.id.textWindow);
 
-        SCService service = retrofit.create(SCService.class);
-        service.getRecentTracks("last_week").enqueue(new Callback<List<Audio>>() {
-            @Override
-            public void onResponse(Call<List<Audio>> call, Response<List<Audio>> response) {
-                if(response.isSuccessful())
-                {
-                    List<Audio> tracks = response.body();
-                    showMessage(tracks.get(0).getTitle());
-                }else
-                    showMessage("Error code "+response.code());
-            }
+        ArrayList<String> audioTitle = new ArrayList<>();
+        for(int i = 0;i<audioList.size();i++)
+            audioTitle.add(audioList.get(i).getTitle());
 
-            @Override
-            public void onFailure(Call<List<Audio>> call, Throwable t) {
-                showMessage("Error code "+t.getMessage());
-            }
-        });
-    }
+        mAdapter = new SCTrackAdapter(this, audioList);
+        mListView.setAdapter(mAdapter);
 
-    private void showMessage(String message)
-    {
-        Toast.makeText(this,message,Toast.LENGTH_SHORT).show();
+        track_title = (TextView)findViewById(R.id.icon_title);
+        track_image = (ImageView)findViewById(R.id.icon_image);
     }
 
     /********************************** Initiate Service and connect Client *********************************/
@@ -305,24 +300,60 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Log.d("Cursor Error", "Cursor is Null");
     }
 
-    private void setUpMedia()
+    private void setUpStorageMedia()
     {
         loadAudio();
-        ListView mListView = (ListView) findViewById(R.id.textWindow);
-
-        ArrayList<String> audioTitle = new ArrayList<String>();
-        for(int i = 0;i<audioList.size();i++)
-            audioTitle.add(audioList.get(i).getTitle());
-
-        ArrayAdapter<String> mAdapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_list_item_1, audioTitle);
-        mListView.setAdapter(mAdapter);
-
+        setListView();
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
-            public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
-                                    long arg3) {playAudio(arg2);}
+            public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3)
+            {
+                track_title.setText(audioList.get(arg2).getTitle());
+                Picasso.with(MainActivity.this).load(audioList.get(arg2).getArtworkURL()).into(track_image);
+                playAudio(arg2);
+            }
+        });
+
+    }
+    private void loadTracks(List<Audio> audio)
+    {
+        audioList.clear();
+        audioList.addAll(audio);
+        mAdapter.notifyDataSetChanged();
+    }
+
+    private void setUpStreamMedia()
+    {
+        setListView();
+
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Audio audio = audioList.get(position);
+
+                track_title.setText(audio.getTitle());
+                Picasso.with(MainActivity.this).load(audio.getArtworkURL()).into(track_image);
+
+            }
+        });
+
+        SCService service = SoundCloud.getService();
+        service.getRecentTracks("last_week").enqueue(new Callback<List<Audio>>() {
+            @Override
+            public void onResponse(Call<List<Audio>> call, Response<List<Audio>> response) {
+                if(response.isSuccessful())
+                {
+                    List<Audio> tracks = response.body();
+                    loadTracks(tracks);
+                }else
+                    Log.d("Error code ", response.code()+"");
+            }
+
+            @Override
+            public void onFailure(Call<List<Audio>> call, Throwable t) {
+                Log.d("Error code ",t.getMessage()+"");
+            }
         });
     }
 }

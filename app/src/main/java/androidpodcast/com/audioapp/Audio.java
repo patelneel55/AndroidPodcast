@@ -67,7 +67,7 @@ public class Audio implements Serializable
 
     public void setStreamURL(String mStreamURL) {this.mStreamURL = mStreamURL;}
 
-    public void getArtworkURL(String mArtworkURL) {this.mArtworkURL = mArtworkURL;}
+    public void setmArtworkURL(String mArtworkURL) {this.mArtworkURL = mArtworkURL;}
 
 
 }

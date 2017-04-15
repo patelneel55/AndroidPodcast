@@ -5,4 +5,8 @@
     <dimen name="nav_header_vertical_spacing">16dp</dimen>
     <dimen name="nav_header_height">160dp</dimen>
     <dimen name="fab_margin">16dp</dimen>
+    <dimen name="row_height">72dp</dimen>
+    <dimen name="image_padding">4dp</dimen>
+    <dimen name="image_size">48dp</dimen>
+    <dimen name="activity_vertical_inner_margin">56dp</dimen>
 </resources>
