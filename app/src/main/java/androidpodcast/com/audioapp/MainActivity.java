@@ -67,6 +67,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     TextView track_title;
     ImageView track_image;
 
+    public boolean stream = true;
+
+    public boolean getMediaType()
+    {
+        return stream;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -264,6 +271,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
+    /*Streams the selected audio*/
+
     /*Loads all audio from local storage*/
     private void loadAudio()
     {
@@ -305,7 +314,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         loadAudio();
         setListView();
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
             @Override
             public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3)
             {
@@ -325,19 +333,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void setUpStreamMedia()
     {
-        setListView();
-
-        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Audio audio = audioList.get(position);
-
-                track_title.setText(audio.getTitle());
-                Picasso.with(MainActivity.this).load(audio.getArtworkURL()).into(track_image);
-
-            }
-        });
-
         SCService service = SoundCloud.getService();
         service.getRecentTracks("last_week").enqueue(new Callback<List<Audio>>() {
             @Override
@@ -353,6 +348,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public void onFailure(Call<List<Audio>> call, Throwable t) {
                 Log.d("Error code ",t.getMessage()+"");
+            }
+        });
+
+        setListView();
+
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3)
+            {
+                Audio audio = audioList.get(arg2);
+
+                track_title.setText(audio.getTitle());
+                Picasso.with(MainActivity.this).load(audio.getArtworkURL()).into(track_image);
+
+                playAudio(arg2);
             }
         });
     }

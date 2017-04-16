@@ -53,6 +53,9 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     public int audioIndex = -1;
     public Audio activeAudio;
 
+    //Sets the type of media (Stream/Storage)
+    public boolean stream = true;
+
     public void initMediaPlayer() {
         mediaPlayer = new MediaPlayer();
         //Set up MediaPlayer event listeners
@@ -68,7 +71,10 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         try {
             // Set the data source to the mediaFile location
-            mediaPlayer.setDataSource(activeAudio.getData());
+            if(!stream)
+                mediaPlayer.setDataSource(activeAudio.getData());
+            else
+                mediaPlayer.setDataSource(activeAudio.getStreamURL() + "?client_id=" + Config.CLIENT_ID);
         } catch (IOException e) {
             e.printStackTrace();
             stopSelf();
