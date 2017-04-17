@@ -16,12 +16,14 @@ import java.util.ArrayList;
 
 public class StorageUtil
 {
+    //Creates the variables for a storage class
     private final String STORAGE = "androidpodcast.com.audioapp";
     private SharedPreferences preferences;
     private Context context;
 
     public StorageUtil(Context context) {this.context = context;}
 
+    /*Stores the media in a Shared json preferences*/
     public void storeAudio(ArrayList<Audio> arrayList)
     {
         preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);
@@ -33,6 +35,7 @@ public class StorageUtil
         editor.apply();
     }
 
+    /*Loads the audio from the storage json preferences*/
     public ArrayList<Audio> loadAudio()
     {
         preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);
@@ -42,6 +45,7 @@ public class StorageUtil
         return gson.fromJson(json, type);
     }
 
+    /*Stores the media at the given index in the list in a Shared json preferences*/
     public void storeAudioIndex(int index) {
         preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
@@ -49,11 +53,13 @@ public class StorageUtil
         editor.apply();
     }
 
+    /*Loads the audio at the given index in the list from the storage json preferences*/
     public int loadAudioIndex() {
         preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);
         return preferences.getInt("audioIndex", -1);//return -1 if no data found
     }
 
+    /*Clears the whole shared json preferences*/
     public void clearCachedAudioPlaylist()
     {
         preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);

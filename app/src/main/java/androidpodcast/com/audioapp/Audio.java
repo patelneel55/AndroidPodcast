@@ -1,9 +1,7 @@
 package androidpodcast.com.audioapp;
 
 import com.google.gson.annotations.SerializedName;
-
 import java.io.Serializable;
-
 import retrofit2.Retrofit;
 
 /**
@@ -13,6 +11,7 @@ import retrofit2.Retrofit;
 public class Audio implements Serializable
 {
 
+    @SerializedName("data")
     private String data;
 
     @SerializedName("title")

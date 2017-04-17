@@ -17,6 +17,7 @@ import java.util.List;
 
 public class SCTrackAdapter extends BaseAdapter
 {
+    //Arranges the audiolist in context
     private Context context;
     private List<Audio> audioList;
 
@@ -26,24 +27,28 @@ public class SCTrackAdapter extends BaseAdapter
         this.audioList = audioList;
     }
 
+    /*Returns the number of media files*/
     @Override
     public int getCount()
     {
         return audioList.size();
     }
 
+    /*Returns the media file at the provided position in the list*/
     @Override
     public Audio getItem(int position)
     {
         return audioList.get(position);
     }
 
+    /*Returns the position of the media file in the list as an ID*/
     @Override
     public long getItemId(int position)
     {
         return position;
     }
 
+    /*Creates the ListView through the provided data and return the ListView as a View object*/
     @Override
     public View getView(int position, View convertView, ViewGroup parent)
     {
