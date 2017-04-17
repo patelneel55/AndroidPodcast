@@ -58,37 +58,37 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public static final String Broadcast_PLAY_NEW_AUDIO = "androidpodcast.com.audioapp.PlayNewAudio";
     private MediaPlayerService player;
     boolean serviceBound = false;
+
     //Initialize audio arraylist
     ArrayList<Audio> audioList;
 
-    //New View Adapter for different UX
+    //Variables that initialize the new ListView
     SCTrackAdapter mAdapter;
     ListView mListView;
     TextView track_title;
     ImageView track_image;
 
-    public boolean stream = true;
-
-    public boolean getMediaType()
-    {
-        return stream;
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
+        //Creates the initial page layout
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //setUpStreamMedia();
+
+        //Lists the media either in cloud or storage (asks permission if necessary)
+
+        //setUpMedia("stream");
         //Checks and asks the user storage permission
         if (ContextCompat.checkSelfPermission(MainActivity.this, android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
                 ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
         else
-            setUpStorageMedia();
+            setUpMedia("Storage");
 
         //playAudio("https://upload.wikimedia.org/wikipedia/commons/6/6c/Grieg_Lyric_Pieces_Kobold.ogg");
 
+
+        //Instantiates the navigation bar and the top tool bar
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -110,6 +110,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
     }
+
+    /********************************** Basic Callbacks of a phone functions and UI*********************************/
 
     @Override
     public void onBackPressed() {
@@ -168,7 +170,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return true;
     }
 
-    //Action based on permission response
+    /*Callback function for the permission provided*/
     @Override
     public void onRequestPermissionsResult(int requestCode,String[] permissions, int[] grantResults)
     {
@@ -178,7 +180,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
                 {
-                    setUpStorageMedia();
+                    setUpMedia("storage");
                     Toast.makeText(this, "Permission Granted", Toast.LENGTH_SHORT).show();
                 }
                 else
@@ -187,7 +189,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    /*Initializes the View Adapter*/
+    /*Initializes the View Adapter and sets the ListView*/
     private void setListView()
     {
         mListView = (ListView) findViewById(R.id.textWindow);
@@ -271,9 +273,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    /*Streams the selected audio*/
-
-    /*Loads all audio from local storage*/
+    /*Loads media (that classifies as music) from local storage*/
     private void loadAudio()
     {
         ContentResolver contentResolver = getContentResolver();
@@ -309,61 +309,67 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Log.d("Cursor Error", "Cursor is Null");
     }
 
-    private void setUpStorageMedia()
+    /*Sets up all the media from local storage recovered as a onClick listener and the UI*/
+    private void setUpMedia(String type)
     {
-        loadAudio();
-        setListView();
-        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3)
+        if(type.equals("Storage") || type.equals("STORAGE") || type.equals("storage"))
+        {
+            player.setStreamType(false);
+            loadAudio();
+            setListView();
+            mListView.setOnItemClickListener(new AdapterView.OnItemClickListener()
             {
-                track_title.setText(audioList.get(arg2).getTitle());
-                Picasso.with(MainActivity.this).load(audioList.get(arg2).getArtworkURL()).into(track_image);
-                playAudio(arg2);
-            }
-        });
+                @Override
+                public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3)
+                {
+                    track_title.setText(audioList.get(arg2).getTitle());
+                    Picasso.with(MainActivity.this).load(audioList.get(arg2).getArtworkURL()).into(track_image);
+                    playAudio(arg2);
+                }
+            });
+        }else if(type.equals("Stream") || type.equals("stream") || type.equals("STREAM"))
+        {
+            player.setStreamType(true);
+            SCService service = SoundCloud.getService();
+            service.getRecentTracks("last_week").enqueue(new Callback<List<Audio>>() {
+                @Override
+                public void onResponse(Call<List<Audio>> call, Response<List<Audio>> response) {
+                    if(response.isSuccessful())
+                    {
+                        List<Audio> tracks = response.body();
+                        loadTracks(tracks);
+                    }else
+                        Log.d("Error code ", response.code()+"");
+                }
 
+                @Override
+                public void onFailure(Call<List<Audio>> call, Throwable t) {
+                    Log.d("Error code ",t.getMessage()+"");
+                }
+            });
+
+            setListView();
+
+            mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3)
+                {
+                    Audio audio = audioList.get(arg2);
+
+                    track_title.setText(audio.getTitle());
+                    Picasso.with(MainActivity.this).load(audio.getArtworkURL()).into(track_image);
+
+                    playAudio(arg2);
+                }
+            });
+        }
     }
+
+    /*Loads all media from the server API*/
     private void loadTracks(List<Audio> audio)
     {
         audioList.clear();
         audioList.addAll(audio);
         mAdapter.notifyDataSetChanged();
-    }
-
-    private void setUpStreamMedia()
-    {
-        SCService service = SoundCloud.getService();
-        service.getRecentTracks("last_week").enqueue(new Callback<List<Audio>>() {
-            @Override
-            public void onResponse(Call<List<Audio>> call, Response<List<Audio>> response) {
-                if(response.isSuccessful())
-                {
-                    List<Audio> tracks = response.body();
-                    loadTracks(tracks);
-                }else
-                    Log.d("Error code ", response.code()+"");
-            }
-
-            @Override
-            public void onFailure(Call<List<Audio>> call, Throwable t) {
-                Log.d("Error code ",t.getMessage()+"");
-            }
-        });
-
-        setListView();
-
-        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3)
-            {
-                Audio audio = audioList.get(arg2);
-
-                track_title.setText(audio.getTitle());
-                Picasso.with(MainActivity.this).load(audio.getArtworkURL()).into(track_image);
-
-                playAudio(arg2);
-            }
-        });
     }
 }
