@@ -27,9 +27,13 @@ import android.support.v4.app.NotificationCompat.Style;
  * Created by Neel on 4/10/2017.
  */
 
-public class MediaPlayerService extends Service implements MediaPlayer.OnCompletionListener,
-        MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer.OnSeekCompleteListener,
-        MediaPlayer.OnInfoListener, MediaPlayer.OnBufferingUpdateListener,
+public class MediaPlayerService extends Service implements
+        MediaPlayer.OnCompletionListener,
+        MediaPlayer.OnPreparedListener,
+        MediaPlayer.OnErrorListener,
+        MediaPlayer.OnSeekCompleteListener,
+        MediaPlayer.OnInfoListener,
+        MediaPlayer.OnBufferingUpdateListener,
         AudioManager.OnAudioFocusChangeListener
 {
     //Binder given to clients
@@ -38,17 +42,17 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     //Creates an instance of the mediaPlayer
     public MediaPlayer mediaPlayer;
 
-    //path to the audio file
+    //Path to the audio file
     private String mediaFile;
     private int resumePosition;
     private AudioManager audioManager;
 
-    //Handle incoming calls
+    //Help handle incoming calls
     private boolean ongoingCall = false;
     private PhoneStateListener phoneStateListener;
     private TelephonyManager telephonyManager;
 
-    //List of available Audio Files
+    //List of available audio files
     public ArrayList<Audio> audioList;
     public int audioIndex = -1;
     public Audio activeAudio;
@@ -56,8 +60,14 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     //Sets the type of media (Stream/Storage)
     public boolean stream = true;
 
-    public void initMediaPlayer() {
+    /*Sets the type of data source*/
+    public void setStreamType(boolean stream){this.stream = stream;}
+
+    /*Initializes the media player and adds the event listeners*/
+    public void initMediaPlayer()
+    {
         mediaPlayer = new MediaPlayer();
+
         //Set up MediaPlayer event listeners
         mediaPlayer.setOnCompletionListener(this);
         mediaPlayer.setOnErrorListener(this);
@@ -65,6 +75,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         mediaPlayer.setOnBufferingUpdateListener(this);
         mediaPlayer.setOnSeekCompleteListener(this);
         mediaPlayer.setOnInfoListener(this);
+
         //Reset so that the MediaPlayer is not pointing to another data source
         mediaPlayer.reset();
 
@@ -82,6 +93,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         mediaPlayer.prepareAsync();
     }
 
+    /********************************** Media Player callbacks *********************************/
 
     public void onCreate()
     {
@@ -90,61 +102,59 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         registerBecomingNoisyReceiver();
         register_playNewAudio();
     }
+
     @Override
     public IBinder onBind(Intent intent)
     {
         return iBinder;
     }
 
+    /*Invoked indicating buffering status being streamed over the network*/
     @Override
     public void onBufferingUpdate(MediaPlayer mp, int percent)
     {
-        //Invoked indicating buffering status
-        //being streamed over the network
     }
 
+    /*Invoked when playback of a media source has completed.*/
     @Override
     public void onCompletion(MediaPlayer mp)
     {
-        //Invoked when playback of a media source has completed.
         stopMedia();
         removeAudioFocus();
         stopSelf();
     }
 
+    /*Invoked when there has been an error during operation*/
     @Override
     public boolean onError(MediaPlayer mp, int what, int extra)
     {
-        //Invoked when there has been an error during operation
         stopMedia();
         stopSelf();
         return false;
     }
 
+    /*Invoked to communicate some info.*/
     @Override
-    public boolean onInfo(MediaPlayer mp, int what, int extra) {
-        //Invoked to communicate some info.
-        return false;
-    }
+    public boolean onInfo(MediaPlayer mp, int what, int extra) {return false;}
 
+    /*Invoked when media source is ready for playback*/
     @Override
     public void onPrepared(MediaPlayer mp)
     {
-        //Invoked when media source is ready for playback
         requestAudioFocus();
         playMedia();
     }
 
+    /*Invoked when completion of a seek operation*/
     @Override
     public void onSeekComplete(MediaPlayer mp)
     {
-        //Invoked when completion of a seek operation
     }
 
+    /*Invoked when the audio focus of the system is updated*/
     @Override
     public void onAudioFocusChange(int focusChange)
     {
-        //Invoked when the audio focus of the system is updated
         switch(focusChange)
         {
             case AudioManager.AUDIOFOCUS_GAIN:
@@ -166,6 +176,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         }
     }
 
+    /*Requests the audio focus from the Android service*/
     private boolean requestAudioFocus()
     {
         audioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
@@ -178,6 +189,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         public MediaPlayerService getService(){return MediaPlayerService.this;}
     }
 
+    /*Removes the audio focus and provides it back to the android service*/
     private boolean removeAudioFocus()
     {
         return AudioManager.AUDIOFOCUS_REQUEST_GRANTED == audioManager.abandonAudioFocus(this);
@@ -245,13 +257,16 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         new StorageUtil(getApplicationContext()).clearCachedAudioPlaylist();
     }
 
-    /********************************** Media Player functions*********************************/
+    /********************************** Media Player button functions*********************************/
+
+    /*Plays media*/
     public void playMedia()
     {
         if(!mediaPlayer.isPlaying())
             mediaPlayer.start();
     }
 
+    /*Pause media*/
     public void pauseMedia()
     {
         if(mediaPlayer.isPlaying())
@@ -261,6 +276,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         }
     }
 
+    /*Stops media*/
     public void stopMedia()
     {
         if(mediaPlayer == null)return;
@@ -268,6 +284,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             mediaPlayer.stop();
     }
 
+    /*REsumes media*/
     public void resumeMedia()
     {
         if(!mediaPlayer.isPlaying())
@@ -323,7 +340,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
 
 
-    //Handle incoming phone calls
+    /*Handle incoming phone calls*/
     private void callStateListener() {
         // Get the telephony manager
         telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
